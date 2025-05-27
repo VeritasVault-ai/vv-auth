@@ -1,11 +1,11 @@
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import typescript from '@rollup/plugin-typescript';
-import { terser } from 'rollup-plugin-terser';
-import peerDepsExternal from 'rollup-plugin-peer-deps-external';
-import dts from 'rollup-plugin-dts';
-import { defineConfig } from 'rollup';
-import pkg from './package.json';
+const resolve = require('@rollup/plugin-node-resolve');
+const commonjs = require('@rollup/plugin-commonjs');
+const typescript = require('@rollup/plugin-typescript');
+const { terser } = require('rollup-plugin-terser');
+const peerDepsExternal = require('rollup-plugin-peer-deps-external');
+const dts = require('rollup-plugin-dts').default;  // Note the .default here
+const { defineConfig } = require('rollup');
+const pkg = require('./package.json');
 
 // List of dependencies to externalize (don't bundle)
 const external = [
@@ -42,7 +42,7 @@ const commonPlugins = [
   })
 ];
 
-export default defineConfig([
+module.exports = defineConfig([
   // Main builds (CJS, ESM, UMD)
   {
     input: 'src/index.ts',

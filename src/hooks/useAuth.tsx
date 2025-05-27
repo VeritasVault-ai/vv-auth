@@ -1,74 +1,48 @@
-/**
- * useAuth Hook
- * 
- * Placeholder implementation - will be replaced with full implementation
- */
-import { useState, useEffect, useCallback, useContext, createContext, ReactNode } from 'react';
-import { 
-  AuthState, 
-  AuthResult, 
-  AuthContextType
-} from '../types';
-
-// Default initial auth state
-const initialAuthState: AuthState = {
-  isLoading: true,
-  isAuthenticated: false,
-  user: null,
-  session: null,
-  error: null,
-  wallet: null
-};
-
-// Create context for auth state
-const AuthContext = createContext<AuthContextType>({
-  ...initialAuthState,
-  login: async () => ({ success: false, error: new Error('Not implemented') }),
-  loginWithProvider: async () => ({ success: false, error: new Error('Not implemented') }),
-  loginWithWallet: async () => ({ success: false, error: new Error('Not implemented') }),
-  logout: async () => {},
-  refreshSession: async () => {},
-  signMessage: async () => null,
-  getToken: async () => null
-});
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User, AuthResponse, SocialProvider, WalletType } from '../types/auth';
 
 /**
- * Auth Provider component for wrapping application with authentication context
+ * Auth context value
  */
-export function AuthProvider({ 
-  children
-}: { 
+interface AuthContextValue {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: User | null;
+  login: (email: string, password: string) => Promise<AuthResponse>;
+  loginWithProvider: (provider: SocialProvider) => Promise<AuthResponse>;
+  loginWithWallet: (walletType: WalletType) => Promise<AuthResponse>;
+  logout: () => Promise<boolean>;
+}
+
+// Create context
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+/**
+ * Auth provider props
+ */
+interface AuthProviderProps {
   children: ReactNode;
-}) {
-  // Implementation will be added in the full version
-  return (
-    <AuthContext.Provider value={{
-      ...initialAuthState,
-      login: async () => ({ success: false, error: new Error('Not implemented') }),
-      loginWithProvider: async () => ({ success: false, error: new Error('Not implemented') }),
-      loginWithWallet: async () => ({ success: false, error: new Error('Not implemented') }),
-      logout: async () => {},
-      refreshSession: async () => {},
-      signMessage: async () => null,
-      getToken: async () => null
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  supabaseUrl?: string;
+  supabaseKey?: string;
 }
 
 /**
- * Hook for accessing authentication context
+ * Auth provider component
  */
-export function useAuthContext(): AuthContextType {
-  return useContext(AuthContext);
-}
+export const AuthProvider: React.FC<AuthProviderProps> = ({
+  children,
+  supabaseUrl,
+  supabaseKey,
+}) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-/**
- * Main authentication hook for use in components
- */
-export function useAuth(): AuthContextType {
-  return useAuthContext();
-}
+  // Initialize auth service and set up listeners
+  useEffect(() => {
+    // Implementation would initialize auth service
+    setIsLoading(false);
+  }, []);
 
-export default useAuth;
+  // Auth context value
+  const value: AuthContextValue = {
+    isAuthenticated: echo -e \033[0;34mCreating
