@@ -1,0 +1,61 @@
+# vv-auth .npmignore
+# Files and directories to exclude when publishing to npm
+
+# Source files (we only want to publish the compiled distribution)
+src/
+tests/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Development configuration
+.github/
+.vscode/
+.eslintrc*
+.prettierrc*
+.editorconfig
+.babelrc
+jest.config.*
+tsconfig.json
+rollup.config.js
+.nvmrc
+.npmrc
+jscpd.json
+
+# Examples (should be in documentation, not in the package)
+examples/
+
+# Build tools and cache
+node_modules/
+coverage/
+.nyc_output/
+.turbo/
+.cache/
+.rollup.cache/
+*.tsbuildinfo
+
+# Environment and local files
+.env*
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Migration scripts (should be applied manually)
+migrations/
+
+# Other development files
+.aiguidance/
+.aiguidelines/
+.aihistory/
+CONTRIBUTING.md
+CHANGELOG.md
+
+# Keep these files
+# dist/ - This directory contains the compiled code (automatically included)
+# README.md - Documentation (automatically included)
+# LICENSE - License information (automatically included)
+# package.json - Package configuration (automatically included)
