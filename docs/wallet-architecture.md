@@ -39,6 +39,77 @@ Our system is divided into four main layers:
 └─────────┘     \___/
 ```
 
+```mermaid
+  graph TD
+      %% Main Components
+      Client[Client Application] --> AuthProvider[Auth Provider Component]
+      
+      %% Core Components
+      subgraph "vv-auth Library"
+          AuthProvider --> AuthContext[Auth Context]
+          AuthContext --> UseAuth[useAuth Hook]
+          
+          %% Auth Providers
+          subgraph "Auth Providers"
+              UseAuth --> SupabaseAuth[Supabase Auth]
+              UseAuth --> WalletAuth[Web3 Wallet Auth]
+              
+              %% Wallet Providers
+              subgraph "Wallet Providers"
+                  WalletAuth --> MetaMask[MetaMask]
+                  WalletAuth --> WalletConnect[WalletConnect]
+              end
+          end
+          
+          %% Middleware
+          subgraph "Middleware"
+              AuthMiddleware[Auth Middleware]
+              AuthMiddleware --> RouteProtection[Route Protection]
+              AuthMiddleware --> SessionValidation[Session Validation]
+          end
+          
+          %% Compliance
+          subgraph "Compliance"
+              AuditLogger[Audit Logger]
+              AuditLogger --> EventLogging[Event Logging]
+          end
+          
+          %% Interfaces
+          subgraph "Interfaces"
+              AuthProviderInterface[Auth Provider Interface]
+              UserInterface[User Interface]
+              AuthResponseInterface[Auth Response Interface]
+          end
+          
+          %% Clients
+          subgraph "Clients"
+              SupabaseClient[Supabase Client]
+          end
+          
+          %% Connections
+          UseAuth --> AuthProviderInterface
+          SupabaseAuth --> SupabaseClient
+          WalletAuth --> MetaMask
+          WalletAuth --> WalletConnect
+          AuthMiddleware --> AuditLogger
+      end
+      
+      %% External Services
+      SupabaseClient --> SupabaseService[Supabase Service]
+      MetaMask --> EthereumNetwork[Ethereum Network]
+      WalletConnect --> MultiChain[Multi-Chain Networks]
+      
+      %% Styling
+      classDef core fill:#4a90e2,stroke:#2171c7,stroke-width:2px,color:#fff;
+      classDef provider fill:#67c23a,stroke:#529b2e,stroke-width:1px,color:#fff;
+      classDef middleware fill:#e6a23c,stroke:#c88226,stroke-width:1px,color:#fff;
+      classDef external fill:#f56c6c,stroke:#e64242,stroke-width:1px,color:#fff;
+      
+      class AuthContext,UseAuth core;
+      class SupabaseAuth,WalletAuth,MetaMask,WalletConnect provider;
+      class AuthMiddleware,RouteProtection,SessionValidation middleware;
+      class SupabaseService,EthereumNetwork,MultiChain external;
+      ```
 > **Note**: For MetaMask and other supported wallets, the Wallet Adapters exclusively consume the Plurality.network middleware API rather than direct provider APIs. This ensures compliance by design across all wallet interactions.
 
 ### 1. Repository Layer

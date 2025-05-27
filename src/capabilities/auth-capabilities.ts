@@ -1,4 +1,4 @@
-import { User, AuthProviderName } from '../types/auth';
+import { AuthProviderName, User } from '../types/auth';
 
 /**
  * Authentication capabilities
@@ -69,10 +69,14 @@ export class AuthCapabilityManager {
    */
   getUserCapabilities(user: User | null, options?: CapabilityCheckOptions): Set<AuthCapability> {
     
-    const capabilities = new Set<AuthCapability>();
-    
-    // Add provider capabilities
-    const providerName = user.metadata?.provider as AuthProviderName;
+const capabilities = new Set<AuthCapability>();
+
+if (!user) {
+  return capabilities;          // anonymous user ⇒ empty capability set
+}
+
+// Add provider capabilities
+const providerName = user.metadata?.provider as AuthProviderName;
     if (providerName && DEFAULT_PROVIDER_CAPABILITIES[providerName]) {
       DEFAULT_PROVIDER_CAPABILITIES[providerName].forEach(cap => capabilities.add(cap));
     }

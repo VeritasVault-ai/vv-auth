@@ -58,7 +58,7 @@ export interface UserCredentials {
 /**
  * Social provider type
  */
-export type SocialProvider = 'google' | 'github' | 'microsoft' | 'twitter' | 'facebook' | 'apple' | 'discord' | 'linkedin' | 'twitch' | 'instagram' | 'discord' | 'linkedin' | 'twitch' | 'instagram';
+ export type SocialProvider = 'google' | 'github' | 'microsoft' | 'twitter' | 'facebook' | 'apple' | 'discord' | 'linkedin' | 'twitch' | 'instagram';
 
 /**
  * Wallet type

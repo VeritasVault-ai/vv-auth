@@ -1,4 +1,4 @@
-import { WalletAdapter } from '.interfaces//wallet-adapter.ts';
+import { WalletAdapter } from '../../interfaces/wallet-adapter';
 
 /**
  * PluralityWalletAdapter implements the WalletAdapter interface

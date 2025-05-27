@@ -5,6 +5,12 @@ export class ComplianceService {
   /**
    * Logs an authentication event
    */
+export class ComplianceService {
+  constructor(
+    private logStore: ComplianceLogStore,
+    private config: ComplianceConfig
+  ) {}
+
   async logAuthEvent(event: {
     type: string;
     userId: string;
@@ -12,15 +18,34 @@ export class ComplianceService {
     timestamp: Date;
     metadata?: Record<string, any>;
   }): Promise<void> {
-    // Implementation would store logs securely
-    console.log('Auth event logged:', event);
+    // Sanitize sensitive data
+    const sanitizedEvent = this.sanitizeEvent(event);
+    
+    // Store in secure, compliant log store
+    await this.logStore.store({
+      ...sanitizedEvent,
+      id: crypto.randomUUID(),
+      level: 'AUTH',
+      retention: this.config.authLogRetention
+    });
   }
 
-  /**
-   * Performs pre-authentication compliance checks
-   */
   async preAuthCheck(data: Record<string, any>): Promise<void> {
-    // Implementation would check for suspicious activity
-    console.log('Pre-auth check performed:', data);
+    // Implement actual compliance checks
+    const checks = await this.performComplianceChecks(data);
+    
+    if (!checks.passed) {
+      throw new ComplianceError('Pre-auth check failed', checks.violations);
+    }
+    
+    // Log the check result
+    await this.logAuthEvent({
+      type: 'PRE_AUTH_CHECK',
+      userId: data.userId || 'unknown',
+      provider: 'compliance',
+      timestamp: new Date(),
+      metadata: { checksPassed: checks.passed }
+    });
+  }
   }
 }

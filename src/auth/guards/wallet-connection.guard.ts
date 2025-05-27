@@ -1,15 +1,18 @@
+import { Router } from 'next/router';
+import { firstValueFrom } from 'rxjs';
 import { WalletOrchestrator } from '../services/wallet-orchestrator.service';
-
 /**
  * Guard requiring an active wallet connection
  * This is separate from authentication - a user could be authenticated
  * but not have an active wallet connection at the moment
  */
 export class ActiveWalletGuard {
-  constructor(private walletOrchestrator: WalletOrchestrator, private router: any) {}
+
+  constructor(private walletOrchestrator: WalletOrchestrator, private router: Router) {}
 
   async canActivate(route: any, state: any): Promise<boolean> {
-    const isConnected = await this.walletOrchestrator.isWalletConnected().toPromise();
+
+    const isConnected = await firstValueFrom(this.walletOrchestrator.isWalletConnected());
     
     if (isConnected) {
       return true;
@@ -28,7 +31,7 @@ export class ActiveWalletGuard {
  * This can check if an action requires specific authentication methods
  */
 export class PermissionGuard {
-  constructor(private permissionService: any, private router: any) {}
+  constructor(private permissionService: PermissionService, private router: Router) {}
 
   canActivate(route: any, state: any): boolean {
     const requiredPermission = route.data.permission;
@@ -62,4 +65,10 @@ export class PermissionGuard {
     
     return false;
   }
+}
+
+// Define a type for permissionService
+export interface PermissionService {
+  hasPermission(permission: string): boolean;
+  requiresSpecificMethod(permission: string): string | null;
 }

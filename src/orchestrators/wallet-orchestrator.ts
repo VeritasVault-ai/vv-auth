@@ -1,9 +1,8 @@
-import { ethers } from 'ethers';
 import { WalletAdapter, WalletConnectionOptions } from '../interfaces/wallet-adapter';
-import { Web3AuthProvider } from '../providers/web3';
 import { WalletOrchestrator, WalletSessionEvent, WalletSessionState } from '../interfaces/wallet-orchestrator';
-import { AuthError, AuthResponse, WalletType } from '../types/auth';
+import { Web3AuthProvider } from '../providers/web3';
 import { ComplianceService } from '../services/compliance';
+import { AuthResponse, WalletType } from '../types/auth';
 
 /**
  * Implementation of the Wallet Orchestrator that coordinates
@@ -148,11 +147,12 @@ export class DefaultWalletOrchestrator implements WalletOrchestrator {
       
       // Update session state first with wallet connection
       this.updateSessionState({
-        walletType,
-        address,
-        provider,
-        chainId: options?.chainId || null
-      }, 'connected');
+         walletType,
+         address,
+         provider,
+        chainId: options?.chainId || null,
+        connected: true
+       }, 'connected');
       
       // Log the connection event
       await this.logSessionEvent('WALLET_CONNECTED', {
@@ -305,15 +305,12 @@ export class DefaultWalletOrchestrator implements WalletOrchestrator {
       }
       
       // Use adapter to switch chains
+      const previous = this.sessionState.chainId;
       await adapter.switchChain(this.sessionState.provider, chainId, rpcUrl);
-      
-      // Update session state
       this.updateSessionState({ chainId }, 'chain_changed');
-      
-      // Log the network switch
       await this.logSessionEvent('NETWORK_SWITCHED', {
         chainId,
-        previousChainId: this.sessionState.chainId
+        previousChainId: previous
       });
       
       return true;

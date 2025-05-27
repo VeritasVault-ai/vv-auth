@@ -44,7 +44,7 @@ export class SupabaseUserRepository implements UserRepository {
     return this.supabaseClient.auth.onAuthStateChange(callback);
   }
   
-  transformUser(supabaseUser: any): User | null {
+  private transformUser(supabaseUser: SupabaseUser | null): User | null {
     if (!supabaseUser) return null;
 
     return {

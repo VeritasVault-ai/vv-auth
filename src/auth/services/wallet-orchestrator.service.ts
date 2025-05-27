@@ -1,4 +1,5 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { WalletAdapter } from '@/interfaces/wallet-adapter';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WalletConnectionState } from '../models/auth.models';
 import { AuthProvider } from './auth-provider.service';
@@ -14,7 +15,7 @@ export class WalletOrchestrator {
   });
 
   constructor(
-    private walletAdapter: any, // Will be PluralityWalletAdapter
+    private walletAdapter: WalletAdapter,
     private authProvider: AuthProvider
   ) {
     // Listen for adapter disconnection events
@@ -49,8 +50,8 @@ export class WalletOrchestrator {
 
     return new Promise<string>((resolve, reject) => {
       this.walletAdapter.connect()
-        .then((address: string) => {
-          this.setConnectedState(address);
+        .then(({ address, chainId }) => {
+          this.setConnectedState(address, chainId);
           resolve(address);
         })
         .catch((error: any) => {
@@ -107,7 +108,7 @@ export class WalletOrchestrator {
   async linkWalletToAccount(): Promise<void> {
     try {
       // Verify user is authenticated
-      const authenticated = await this.authProvider.isAuthenticated().toPromise();
+      const authenticated = await firstValueFrom(this.authProvider.isAuthenticated());
       if (!authenticated) {
         throw new Error('Must be authenticated to link wallet');
       }
@@ -164,9 +165,15 @@ export class WalletOrchestrator {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address })
       })
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            reject(new Error(`Failed to get challenge: HTTP ${response.status}`));
+            return;
+          }
+          return response.json();
+        })
         .then(data => {
-          if (data.challenge) {
+          if (data && data.challenge) {
             resolve(data.challenge);
           } else {
             reject(new Error('Failed to get challenge'));
@@ -181,20 +188,28 @@ export class WalletOrchestrator {
   /**
    * Request linking challenge from API for given wallet address
    */
-  private requestLinkingChallenge(address: string): Promise<string> {
+  private async requestLinkingChallenge(address: string): Promise<string> {
+    // Securely get the access token from the auth provider
+    const token = await this.authProvider.getAccessToken();
     return new Promise<string>((resolve, reject) => {
       // This would be an API call to get a challenge nonce for linking
       fetch('/api/auth/wallet/linking-challenge', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ address })
       })
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            reject(new Error(`Failed to get linking challenge: HTTP ${response.status}`));
+            return;
+          }
+          return response.json();
+        })
         .then(data => {
-          if (data.challenge) {
+          if (data && data.challenge) {
             resolve(data.challenge);
           } else {
             reject(new Error('Failed to get linking challenge'));

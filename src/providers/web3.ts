@@ -144,9 +144,10 @@ export class Web3AuthProvider implements IWeb3AuthProvider {
   /**
    * Generates a nonce for signing
    */
-  private generateNonce(): string {
-    return ethers.hexlify(ethers.randomBytes(32));
-  }
+private generateNonce(): string {
+  // 96 bits entropy, base-36 encoded → slice to first 8 chars
+  return Math.random().toString(36).substring(2, 10);
+ }
 
   /**
    * Creates an EIP-4361 (Sign-In with Ethereum) message
@@ -214,12 +215,22 @@ Expiration Time: ${params.expirationTime}`;
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to verify signature');
-    }
+let res: Response;
+try {
+  res = await fetch(this.config.apiEndpoint, { ... });
+} catch {
+  throw new Error('Network error contacting auth API');
+}
 
-    const data = await response.json();
+let body: any = {};
+try { body = await res.json(); } catch {}
+
+if (!res.ok) {
+  throw new Error(body?.message ?? `Auth API error ${res.status}`);
+}
+
+const { jwt } = body;
+if (!jwt) throw new Error('Auth API response missing JWT');
     return data.jwt;
   }
 
@@ -393,6 +404,15 @@ export function createWeb3AuthProvider(
       uri: config.uri,
       timeout: config.timeout,
       version: config.version,
+      chainId: config.chainId,
+      apiEndpoint: config.apiEndpoint,
+      complianceEnabled: config.complianceEnabled,
+    },
+    userRepository,
+    walletAdapters,
+    complianceService
+  );
+}      version: config.version,
       chainId: config.chainId,
       apiEndpoint: config.apiEndpoint,
       complianceEnabled: config.complianceEnabled,

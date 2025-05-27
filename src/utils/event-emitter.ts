@@ -2,7 +2,7 @@
  * Simple event emitter implementation
  */
 export class EventEmitter<EventType extends string> {
-  private listeners: Map<EventType, Set<Function>> = new Map();
+  private listeners: Map<EventType, Set<(...args: unknown[]) => void>> = new Map();
 
   /**
    * Adds an event listener

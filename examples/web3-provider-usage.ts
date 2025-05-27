@@ -1,13 +1,21 @@
-import { createWeb3AuthProvider, Web3AuthConfig, WalletConnectionOptions } from '../src/providers/web3';
 import { createClient } from '@supabase/supabase-js';
-import { ComplianceService } from '../src/services/compliance';
 import { ethers } from 'ethers';
+import { createWeb3AuthProvider, WalletConnectionOptions, Web3AuthConfig } from '../src/providers/web3';
+import { ComplianceService } from '../src/services/compliance';
 
 // Example of how to create and use the Web3 provider
 
 // Create Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    'Supabase environment variables are not set. ' +
+    'Please define NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+  );
+}
+
 const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
 // Create configuration

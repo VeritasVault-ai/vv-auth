@@ -1,7 +1,7 @@
-import { ethers } from 'ethers';
 import { createClient } from '@supabase/supabase-js';
-import { NextApiRequest, NextApiResponse } from 'next';
+import { ethers } from 'ethers';
 import jwt from 'jsonwebtoken';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 // This is a sample implementation of a backend API endpoint for Web3 signature verification
 // In a real application, you would need to adapt this to your specific backend framework
@@ -48,7 +48,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: existingUsers, error: queryError } = await supabase
       .from('users')
       .select('id, wallet_addresses')
-      .filter('user_metadata->wallet_addresses', 'cs', )
+      .filter('user_metadata->wallet_addresses', 'cs', `[{
+        "address": "${address.toLowerCase()}"
+      }]`)
       .limit(1);
 
     if (queryError) {
@@ -64,8 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       // User doesn't exist, create a new one
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: ,
-        email_confirm: true,
+        email: `${address.toLowerCase()}@web3auth.veritasvault.com`,
         user_metadata: {
           wallet_addresses: [
             {

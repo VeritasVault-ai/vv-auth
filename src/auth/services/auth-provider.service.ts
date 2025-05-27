@@ -1,6 +1,6 @@
-import { AuthenticationState, UserProfile, LinkingState } from '../models/auth.models';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
+import { AuthenticationState, LinkingState, UserProfile } from '../models/auth.models';
 
 /**
  * AuthProvider manages authentication state and provides methods for
@@ -30,18 +30,20 @@ export class AuthProvider {
     const token = this.storageService.getItem('auth_token');
     if (token) {
       // Validate token with backend
-      this.apiService.validateToken(token).subscribe(
-        (response: any) => {
-          if (response.valid) {
-            this.setAuthenticatedState(response.user, response.authenticatedWith);
-          } else {
+      this.apiService.validateToken(token)
+        .pipe(take(1))
+        .subscribe(
+          (response: any) => {
+            if (response.valid) {
+              this.setAuthenticatedState(response.user, response.authenticatedWith);
+            } else {
+              this.clearSession();
+            }
+          },
+          () => {
             this.clearSession();
           }
-        },
-        () => {
-          this.clearSession();
-        }
-      );
+        );
     }
   }
 
@@ -78,19 +80,20 @@ export class AuthProvider {
   }
 
   /**
-   * Initiate email authentication process
+   * Private helper for all authentication flows
    */
-  authenticateWithEmail(email: string, password: string): Promise<void> {
-    this.authState.next({
-      status: 'CHALLENGE_PENDING'
-    });
-
+  private handleAuthFlow(
+    apiCall: (...args: any[]) => any,
+    authType: 'wallet' | 'email' | 'social',
+    ...apiArgs: any[]
+  ): Promise<void> {
+    this.authState.next({ status: 'CHALLENGE_PENDING' });
     return new Promise<void>((resolve, reject) => {
-      this.apiService.authenticateWithEmail(email, password).subscribe(
+      (apiCall as Function)(...apiArgs).subscribe(
         (response: any) => {
           if (response.success) {
             this.storageService.setItem('auth_token', response.token);
-            this.setAuthenticatedState(response.user, ['email']);
+            this.setAuthenticatedState(response.user, [authType]);
             resolve();
           } else {
             this.setAuthErrorState(response.error || 'Authentication failed');
@@ -103,6 +106,13 @@ export class AuthProvider {
         }
       );
     });
+  }
+
+  /**
+   * Initiate email authentication process
+   */
+  authenticateWithEmail(email: string, password: string): Promise<void> {
+    return this.handleAuthFlow(this.apiService.authenticateWithEmail.bind(this.apiService), 'email', email, password);
   }
 
   /**
@@ -111,56 +121,14 @@ export class AuthProvider {
    * @param walletAddress The wallet address
    */
   authenticateWithWallet(signedChallenge: string, walletAddress: string): Promise<void> {
-    this.authState.next({
-      status: 'CHALLENGE_PENDING'
-    });
-
-    return new Promise<void>((resolve, reject) => {
-      this.apiService.authenticateWithWallet(signedChallenge, walletAddress).subscribe(
-        (response: any) => {
-          if (response.success) {
-            this.storageService.setItem('auth_token', response.token);
-            this.setAuthenticatedState(response.user, ['wallet']);
-            resolve();
-          } else {
-            this.setAuthErrorState(response.error || 'Authentication failed');
-            reject(new Error(response.error || 'Authentication failed'));
-          }
-        },
-        (error: any) => {
-          this.setAuthErrorState(error.message || 'Authentication failed');
-          reject(error);
-        }
-      );
-    });
+    return this.handleAuthFlow(this.apiService.authenticateWithWallet.bind(this.apiService), 'wallet', signedChallenge, walletAddress);
   }
 
   /**
    * Initiate social authentication process
    */
   authenticateWithSocial(provider: string, token: string): Promise<void> {
-    this.authState.next({
-      status: 'CHALLENGE_PENDING'
-    });
-
-    return new Promise<void>((resolve, reject) => {
-      this.apiService.authenticateWithSocial(provider, token).subscribe(
-        (response: any) => {
-          if (response.success) {
-            this.storageService.setItem('auth_token', response.token);
-            this.setAuthenticatedState(response.user, ['social']);
-            resolve();
-          } else {
-            this.setAuthErrorState(response.error || 'Authentication failed');
-            reject(new Error(response.error || 'Authentication failed'));
-          }
-        },
-        (error: any) => {
-          this.setAuthErrorState(error.message || 'Authentication failed');
-          reject(error);
-        }
-      );
-    });
+    return this.handleAuthFlow(this.apiService.authenticateWithSocial.bind(this.apiService), 'social', provider, token);
   }
 
   /**
@@ -192,7 +160,7 @@ export class AuthProvider {
             
             this.authState.next({
               ...currentState,
-              authenticatedWith: updatedMethods
+              authenticatedWith: updatedMethods as ('wallet' | 'email' | 'social')[]
             });
             
             this.linkingState.next({
@@ -244,7 +212,7 @@ export class AuthProvider {
             
             this.authState.next({
               ...currentState,
-              authenticatedWith: updatedMethods
+              authenticatedWith: updatedMethods as ('wallet' | 'email' | 'social')[]
             });
             
             this.linkingState.next({
@@ -309,6 +277,18 @@ export class AuthProvider {
     return this.userProfile.pipe(
       map(profile => profile?.permissions || [])
     );
+  }
+
+  /**
+   * Get the current access token for authenticated API requests
+   */
+  async getAccessToken(): Promise<string | null> {
+    // If using a storageService, retrieve the token from there
+    if (this.storageService && typeof this.storageService.getItem === 'function') {
+      return this.storageService.getItem('auth_token') || null;
+    }
+    // Fallback: not implemented
+    return null;
   }
 
   /**
