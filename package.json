@@ -38,11 +38,11 @@
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.8.1",
     "@supabase/auth-helpers-react": "^0.4.1",
-    "@supabase/supabase-js": "^2.38.0",
-    "ethers": "^6.8.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "ethers": "^5.7.2",
     "next-auth": "^4.24.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "web3": "^4.1.2",
     "web3modal": "^1.9.12"
   },
@@ -54,7 +54,7 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@types/jest": "^29.5.5",
     "@types/node": "^20.8.2",
-    "@types/react": "^18.2.25",
+    "@types/react": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "eslint": "^8.51.0",
@@ -76,8 +76,8 @@
   },
   "peerDependencies": {
     "next": ">=13.0.0",
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0"
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "engines": {
     "node": ">=16.0.0"
