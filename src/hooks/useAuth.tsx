@@ -45,4 +45,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
   // Auth context value
   const value: AuthContextValue = {
-    isAuthenticated: echo -e \033[0;34mCreating
+    isAuthenticated: false,
+    isLoading,
+    user: null,
+    login: async (email: string, password: string) => {
+      // Implement login logic
+      return { success: false, error: { message: "Not implemented", code: "not_implemented" } };
+    },
+    loginWithProvider: async (provider: SocialProvider) => {
+      // Implement social login logic
+      return { success: false, error: { message: "Not implemented", code: "not_implemented" } };
+    },
+    loginWithWallet: async (walletType: WalletType) => {
+      // Implement wallet login logic
+      return { success: false, error: { message: "Not implemented", code: "not_implemented" } };
+    },
+    logout: async () => {
+      // Implement logout logic
+      return false;
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+/**
+ * Hook to access auth context
+ */
+export const useAuthContext = (): AuthContextValue => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuthContext must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export default { AuthProvider, useAuthContext };
